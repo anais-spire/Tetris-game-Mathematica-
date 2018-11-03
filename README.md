@@ -6,6 +6,7 @@ boardinit = Table[0, 20, 10]; (* board empty *)
 board = boardinit; (* board in the game *)
 
 (*Creating pieces*)
+
 yellowp = ReplaceAll[1 -> Yellow][{{1, 1}, {1, 1}} ];
 redp = ReplaceAll[1 -> Red][{{1, 1, 0}, {0, 1, 1}}];
 greenp = ReplaceAll[1 ->  Green][{{1, 0}, {1, 1}, {0, 1}}];
@@ -20,6 +21,7 @@ lpiece = {{yellowp, Dimensions[yellowp]}, {redp,
 
 
 (* Functions *)
+
 newboard[board_, t_, 
   p_] := {nboard = board; pie = p[[1]]; dim = p[[2]]; 
    nboard[[t ;; t + dim[[1]] - 1, r ;; r + dim[[2]] - 1]] = pie; 
