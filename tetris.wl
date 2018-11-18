@@ -1,5 +1,13 @@
 (* ::Package:: *)
 
+(* WARNING, THIS IS EARLY ALPHA VERSION :
+	EVERYTHING IS NOT FINISHED AND FINE !
+	
+	Work in progress :
+	Prevent user from moving piece right or left into another
+*)
+
+
 (* Welcome to Mathematica Tetris Project !
 This package creates a simple playable Tetris game
 Just click "Run Package" and see magic appear ! *)
@@ -71,7 +79,7 @@ collision[piece_, a_]:= (
 	collisionCheckLocations[]:=(
 		rList = {};
 		Table[Table[
-			If[piece[[1, i, j]] == 0 && i =!= 1, AppendTo[rList, {i, j}]; If[MemberQ[rList, {i - 1, j}], rList = Complement[rList, {i - 1, j}]]];
+			If[piece[[1, i, j]] == 0 && i =!= 1 && !MemberQ[rList, {i - 1, j}], AppendTo[rList, {i, j}]];
 			If[a + i < 20 && i == Length[piece[[1]]] && piece[[1, i, j]] =!= 0, AppendTo[rList, {i + 1, j}]],
 		{j, 1, Length[piece[[1, i]]]}], {i, 1, Length[piece[[1]]]}];
 		Return[rList]
