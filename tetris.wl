@@ -34,18 +34,61 @@ lpiece={
 
 (* Functions *)
 
-(* Creates a blank new board *)
+(* Returns an array with all the dimensions, layer by layer of the piece
+The return type is {{amount, decalX}, ...} *)
+get3DConfig[piece_]:= (
+	rList = {};
+	Table[
+		counter = 0;
+		starter = 0;
+		Table[
+			If[piece[[1, i, j]] =!= 0, counter++; If[counter == 1, starter = j]],
+			{j, 1, Length[piece[[1, i]]]}
+		];
+		AppendTo[rList, {counter, starter}],
+		{i, 1, Length[piece[[1]]]}
+	];
+	Return[rList]
+)
+
+(* Creates a new board with the given piece
+This method has been recoded because of empty locations : void must not replace pieces *)
 newboard[board_, t_, p_]:={
 	nboard = board;
-	nboard[[t;;t+p[[2]][[1]]-1,r;;r+p[[2]][[2]]-1]] = p[[1]];
+	pieceShape = get3DConfig[p];
+	nboard = ReplacePart[nboard, 
+		{i_ /; i >= t && i < t + p[[2, 1]],
+		j_ /; j >= r && j < r + p[[2, 2]]}
+		:> If[p[[1, i - t + 1, j - r + 1]] =!= 0, p[[1, i - t + 1, j - r + 1]], nboard[[i, j]]]];
 	nboard
 }[[1]]
 
-(* Checks if there is collision with other pieces or sides of the board *)
+(* Checks if there is collision with other pieces or sides of the board
+Retruns False if collision, True instead *)
 collision[piece_, a_]:= (
-	If[a == 20, Return[True]];
-	If[r <= 0 || r >= Length[board[[1]]], Return[True]];
-	a <= 20 && board[[a + piece[[2,1]], r]] === 0 && board[[a + piece[[2,1]], r+1]] === 0
+	(* Returns all the location where we have to check for collision
+	This method can be recalled if needed, in order to update the locations *)
+	collisionCheckLocations[]:=(
+		rList = {};
+		Table[Table[
+			If[piece[[1, i, j]] == 0 && i =!= 1, AppendTo[rList, {i, j}]; If[MemberQ[rList, {i - 1, j}], rList = Complement[rList, {i - 1, j}]]];
+			If[a + i < 20 && i == Length[piece[[1]]] && piece[[1, i, j]] =!= 0, AppendTo[rList, {i + 1, j}]],
+		{j, 1, Length[piece[[1, i]]]}], {i, 1, Length[piece[[1]]]}];
+		Return[rList]
+	);
+	
+	collisionsChecks = collisionCheckLocations[];
+	hasCollision = False;
+	Table[
+		If[
+			!hasCollision && a + collisionsChecks[[i, 1]] > 0 &&
+			board[[a + collisionsChecks[[i, 1]], r - 1 + collisionsChecks[[i, 2]]]] =!= 0,
+			hasCollision = True; Return[]
+		],
+	{i, 1, Length[collisionsChecks]}];
+	
+	Return[!hasCollision]
+
 )
 (* Rotates a piece *)
 rotatePiece[piece_] := Rotate[piece, angle]
@@ -68,7 +111,7 @@ angle=0;
 
 DynamicModule[
 	{
-		a=0,
+		a=1,
 		piece=RandomChoice[lpiece,1][[1]]
 	},
 	EventHandler[
@@ -98,6 +141,9 @@ DynamicModule[
 								}
 							],
 							{
+								(* The piece performs its last movement *)
+								board=newboard[boardinit, 1, piece],
+								a++;
 								board=newboard[boardinit, a, piece],
 								boardinit=board,
 								a=1,
@@ -117,6 +163,3 @@ DynamicModule[
 		}
 	]
 ]
-
-
-
