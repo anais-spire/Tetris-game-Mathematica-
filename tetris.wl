@@ -1,13 +1,5 @@
 (* ::Package:: *)
 
-(* WARNING, THIS IS EARLY ALPHA VERSION :
-	EVERYTHING IS NOT FINISHED AND FINE !
-	
-	Work in progress :
-	Prevent user from moving piece right or left into another
-*)
-
-
 (* Welcome to Mathematica Tetris Project !
 This package creates a simple playable Tetris game
 Just click "Run Package" and see magic appear ! *)
@@ -103,10 +95,22 @@ rotatePiece[piece_] := Rotate[piece, angle]
 
 (* Checks if the current piece can move in the provided direction.
 The direction can be symbolised with every number, positive or negative *)
-moveCurrentPiece[piece_, direction_]:=(
-	If[r > 1 && Sign[direction] == -1, r--];
+moveCurrentPiece[piece_, direction_, alt_]:=(
+	If[r > 1 && Sign[direction] == -1, (
+		valid = True;
+		Table[(
+			If[board[[alt + i, r - 1]] =!= 0, valid = False]
+		), {i, 0, Length[piece] - 1}];
+		If[valid, r--]
+	)];
 	(* r is dicreased of 1 because the location is count two times in r and Length[piece[[...]]] *)
-	If[r - 1 + Length[piece[[1, 1]]] < Length[board[[1]]] && Sign[direction] == 1, r++]
+	If[r - 1 + Length[piece[[1, 1]]] < Length[board[[1]]] && Sign[direction] == 1, (
+		valid = True;
+		Table[(
+			If[board[[alt + i, r + 1]] =!= 0, valid = False]
+		), {i, 0, Length[piece] - 1}];
+		If[valid, r++]	
+	)]
 )
 
 
@@ -166,8 +170,8 @@ DynamicModule[
 			UpdateInterval -> 0.3
 		],(*slowing down the DynamicModule*)
 		{
-			"LeftArrowKeyDown" :> (moveCurrentPiece[piece, -1]),(*Moving the piece left*)
-			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1])(*Moving the piece right*)
+			"LeftArrowKeyDown" :> (moveCurrentPiece[piece, -1, a]),(*Moving the piece left*)
+			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1, a])(*Moving the piece right*)
 		}
 	]
 ]
