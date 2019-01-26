@@ -2,12 +2,10 @@
 
 (* Welcome to Mathematica Tetris Project !
 This package creates a simple playable Tetris game
-Just click "Run Package" and see magic appear ! 
+Just click "Run Package" and see magic appear !
 
 What's missing:
 Bug fixes for blue piece (go left with blue piece and will collide alone...
-Game Over detection
-Piece rotation (and checks)
 Bug fixes and various improvements
 *)
 
@@ -103,7 +101,7 @@ collision[piece_, a_]:= (
 )
 
 (* Rotates a piece *)
-rotatePiece[piece_] := Rotate[piece, angle]
+rotatePiece[piece_] := Return[{Reverse[piece[[1]], {2}]\[Transpose], Reverse[piece[[2]]]}]
 
 (* Checks if the current piece can move in the provided direction.
 The direction can be symbolised with every number, positive or negative *)
@@ -132,12 +130,16 @@ checkForRowRemoval[a_, piece_]:=(
 	), {i, 1, Length[piece[[1]]]}]
 )
 
+checkForGameOver[a_]:=(
+	If[a == 1, Print["Game Over ! You had ", points, " points"];gameSpeed = 0];
+)
+
 
 (* Representations *)
 
 board=boardinit;
 r=5; (*Placing the piece in the middle of the board at the beginning*)
-angle=0; 
+gameSpeed = 0.3;
 
 
 DynamicModule[
@@ -153,45 +155,49 @@ DynamicModule[
 						board, 
 						ImageSize -> 200
 					],
-					If[a == 20 - piece[[2,1]] + 1,
-						{
-							board=newboard[boardinit,a,piece],
-							boardinit=board,
-							checkForRowRemoval[a, piece],
-							a=1,
-							r=5,
-							piece=RandomChoice[lpiece, 1][[1]]
-						},
-						If[collision[piece, a],
-							If[a==0,
-								{
-									board=newboard[boardinit, 1, piece],
-									a++
-								},
-								{
-									board=newboard[boardinit, a, piece],
-									a++
-								}
-							],
+					If[gameSpeed =!= 0, (
+						If[a == 20 - piece[[2,1]] + 1,
 							{
-								(* The piece performs its last movement *)
-								board=newboard[boardinit, a, piece],
-								checkForRowRemoval[a, piece],
+								board=newboard[boardinit,a,piece],
 								boardinit=board,
+								checkForRowRemoval[a, piece],
 								a=1,
 								r=5,
 								piece=RandomChoice[lpiece, 1][[1]]
-							}
-						]
-					];
+							},
+							If[collision[piece, a],
+								If[a==0,
+									{
+										board=newboard[boardinit, 1, piece],
+										a++
+									},
+									{
+										board=newboard[boardinit, a, piece],
+										a++
+									}
+								],
+								{
+									(* The piece performs its last movement *)
+									board=newboard[boardinit, a, piece],
+									boardinit=board,
+									checkForRowRemoval[a, piece],
+									checkForGameOver[a],
+									a=1,
+									r=5,
+									piece=RandomChoice[lpiece, 1][[1]]
+								}
+							]
+						];
+					)]
 				}
 			],
 			TrackedSymbols :> {},
-			UpdateInterval -> 0.3
+			UpdateInterval -> gameSpeed
 		],(*slowing down the DynamicModule*)
 		{
 			"LeftArrowKeyDown" :> (moveCurrentPiece[piece, -1, a]),(*Moving the piece left*)
-			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1, a])(*Moving the piece right*)
+			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1, a]), (*Moving the piece right*)
+			"UpArrowKeyDown" :> (piece = rotatePiece[piece])
 		}
 	]
 ]
