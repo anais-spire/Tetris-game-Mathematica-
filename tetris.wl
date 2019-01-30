@@ -3,10 +3,6 @@
 (* Welcome to Mathematica Tetris Project !
 This package creates a simple playable Tetris game
 Just click "Run Package" and see magic appear !
-
-What's missing:
-Bug fixes for blue piece (go left with blue piece and will collide alone...
-Bug fixes and various improvements
 *)
 
 (* This function is not really useful and will be removed in future versions *)
@@ -195,9 +191,9 @@ DynamicModule[
 			UpdateInterval -> gameSpeed
 		],(*slowing down the DynamicModule*)
 		{
-			"LeftArrowKeyDown" :> (moveCurrentPiece[piece, -1, a]),(*Moving the piece left*)
-			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1, a]), (*Moving the piece right*)
-			"UpArrowKeyDown" :> (piece = rotatePiece[piece])
+			"LeftArrowKeyDown" :> (moveCurrentPiece[piece, -1, a]; board = newboard[boardinit,a,piece]),(*Moving the piece left*)
+			"RightArrowKeyDown" :> (moveCurrentPiece[piece, 1, a]; board = newboard[boardinit,a,piece]), (*Moving the piece right*)
+			"UpArrowKeyDown" :> (piece = rotatePiece[piece]; board = newboard[boardinit, a, piece])
 		}
 	]
 ]
